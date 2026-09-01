@@ -5,7 +5,6 @@ Run: uvicorn serve_stage4:app --port 8000 --reload
 
 import time
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -29,7 +28,7 @@ class Answer(BaseModel):
 class AskRequest(BaseModel):
     question: str
     force_bad: bool = False
-    model: Optional[str] = None
+    model: str | None = None
 
 
 class AskResponse(BaseModel):
@@ -75,7 +74,7 @@ def call_unsafe(question: str, model: str) -> tuple[Answer, int]:
 @app.post("/ask")
 def ask(body: AskRequest) -> AskResponse:
     model = body.model or DEFAULT_MODEL
-    last_error: Optional[str] = None
+    last_error: str | None = None
 
     for attempt in range(2):
         try:

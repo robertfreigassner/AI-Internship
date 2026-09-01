@@ -4,7 +4,6 @@ Run: uvicorn serve_stage3:app --port 8000 --reload
 """
 
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -69,7 +68,7 @@ def call_unsafe(question: str) -> tuple[Answer, int]:
 
 @app.post("/ask")
 def ask(body: AskRequest) -> AskResponse:
-    last_error: Optional[str] = None
+    last_error: str | None = None
 
     for attempt in range(2):
         try:
