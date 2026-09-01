@@ -2,6 +2,7 @@
 
 import time
 from pathlib import Path
+from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -40,7 +41,7 @@ class AskRequest(BaseModel):
 
     question: str
     force_bad: bool = False  # Stage 3 demo knob — first attempt breaks schema on purpose.
-    model: str | None = None  # Stage 4 — optional override to swap models live.
+    model: Optional[str] = None  # Stage 4 — optional override to swap models live.
 
 
 class AskResponse(BaseModel):
@@ -120,7 +121,7 @@ def ask(body: AskRequest) -> AskResponse:
     """Answer one question with structured output, guardrails, and cost visibility."""
 
     model = body.model or DEFAULT_MODEL
-    last_error: str | None = None
+    last_error: Optional[str] = None
 
     # Stage 3: one retry keeps the logic legible while still protecting callers.
     for attempt in range(2):
