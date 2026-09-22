@@ -34,7 +34,7 @@ STAGES = [
         "serve": "uvicorn serve_stage3:app --port 8000 --reload",
         "look_for": "Normal question works; `force_bad` triggers retry then succeeds.",
         "dummy_question": "What is a vector database?",
-        "dummy_force_bad": True,
+        "dummy_force_bad": False,
         "fields": ["force_bad"],
     },
     {
