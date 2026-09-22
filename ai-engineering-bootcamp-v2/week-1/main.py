@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field, ValidationError
 _ENV_PATH = Path(__file__).resolve().parent / ".env"
 load_dotenv(_ENV_PATH)
 
-from pinecone_store import embedding_model, ingest_document, pinecone_status, query_similar
+from pinecone_store import embedding_model, env_flags, ingest_document, pinecone_status, query_similar
 
 # Reuse one client so TLS handshakes are not repeated on every request.
 app = FastAPI()
@@ -202,6 +202,13 @@ def health() -> dict:
         payload["status"] = "degraded"
         payload["pinecone"] = {"ok": False, "error": str(exc)}
     return payload
+
+
+@app.get("/debug/env")
+def debug_env() -> dict:
+    """Show which env vars Render/local provided. Does not print secrets."""
+
+    return env_flags()
 
 
 @app.get("/debug/pinecone")

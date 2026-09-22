@@ -12,6 +12,7 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Must match the Pinecone index dimension (1536 for text-embedding-3-small).
 DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+DEFAULT_INDEX_NAME = "ai-internship-rag"
 EXPECTED_DIMENSIONS = 1536
 
 
@@ -19,11 +20,34 @@ def embedding_model() -> str:
     return os.getenv("OPENAI_EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL).strip() or DEFAULT_EMBEDDING_MODEL
 
 
+def env_value(name: str, default: str = "") -> str:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip() or default
+
+
+def env_flags() -> dict:
+    """Which env vars are present — never returns secret values."""
+
+    return {
+        "has_openai_api_key": bool(env_value("OPENAI_API_KEY")),
+        "has_pinecone_api_key": bool(env_value("PINECONE_API_KEY")),
+        "has_pinecone_index_name": bool(env_value("PINECONE_INDEX_NAME")),
+        "has_pinecone_index_host": bool(env_value("PINECONE_INDEX_HOST")),
+        "pinecone_index_name": env_value("PINECONE_INDEX_NAME", DEFAULT_INDEX_NAME),
+    }
+
+
 def _require_env(name: str) -> str:
-    value = os.getenv(name, "").strip()
+    value = env_value(name)
     if not value:
         raise RuntimeError(f"Missing environment variable {name}")
     return value
+
+
+def pinecone_index_name() -> str:
+    return env_value("PINECONE_INDEX_NAME", DEFAULT_INDEX_NAME)
 
 
 @lru_cache(maxsize=1)
@@ -51,10 +75,10 @@ def get_index():
     """Target the configured index by host (preferred) or by name."""
 
     pc = _pinecone_client()
-    host = os.getenv("PINECONE_INDEX_HOST", "").strip()
+    host = env_value("PINECONE_INDEX_HOST")
     if host:
         return pc.index(host=host)
-    return pc.index(name=_require_env("PINECONE_INDEX_NAME"))
+    return pc.index(name=pinecone_index_name())
 
 
 def chunk_settings() -> tuple[int, int]:
@@ -128,7 +152,7 @@ def query_similar(text: str, top_k: int = 5) -> list[dict]:
 def pinecone_status() -> dict:
     """Reachability check: no secrets, only index name/stats and embedding model."""
 
-    index_name = _require_env("PINECONE_INDEX_NAME")
+    index_name = pinecone_index_name()
     index = get_index()
     stats = index.describe_index_stats()
     dimension = getattr(stats, "dimension", None)
