@@ -191,6 +191,25 @@ def call_model_unsafe(user_content: str, model: str) -> tuple[Answer, int, int, 
     return answer, total, prompt_tokens, completion_tokens
 
 
+@app.get("/")
+def root() -> dict:
+    """Browser and Render health probes hit GET /. FastAPI 404s if this is missing."""
+
+    return {
+        "service": "AI Engineering Bootcamp - Week 1 RAG",
+        "docs": "/docs",
+        "endpoints": {
+            "POST /ask": "question + model? -> grounded answer, citations, tokens_used, cost_usd, retrieved_chunk_ids",
+            "POST /ingest": "document_id + text -> chunks_indexed",
+            "GET /debug/retrieve": "q -> top-k chunks with scores, no LLM",
+            "GET /debug/pinecone": "index stats and embedding model",
+            "GET /debug/env": "which env vars are set (no secrets)",
+            "GET /health": "liveness plus Pinecone ping",
+        },
+        "models": list(MODEL_PRICES_PER_1K.keys()),
+    }
+
+
 @app.get("/health")
 def health() -> dict:
     """Liveness plus a Pinecone reachability check. Never returns secrets."""
